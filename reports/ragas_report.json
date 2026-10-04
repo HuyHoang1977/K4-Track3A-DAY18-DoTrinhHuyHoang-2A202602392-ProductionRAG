@@ -1,0 +1,141 @@
+{
+  "aggregate": {
+    "faithfulness": 0.8416666666666666,
+    "answer_relevancy": 0.8223529809785678,
+    "context_precision": 0.8333333332570833,
+    "context_recall": 0.8666666666666666
+  },
+  "num_questions": 20,
+  "failures": [
+    {
+      "question": "Nếu cần mua một chiếc laptop 30 triệu cho nhân viên mới, ai phê duyệt và cần gì từ phòng CNTT?",
+      "worst_metric": "faithfulness",
+      "score": 0.3333,
+      "metric_scores": {
+        "faithfulness": 0.0,
+        "answer_relevancy": 0.0,
+        "context_precision": 1.0,
+        "context_recall": 0.3333
+      },
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten prompt, lower temperature"
+    },
+    {
+      "question": "Một nhân viên Senior có 9 năm thâm niên được nghỉ bao nhiêu ngày phép năm và lương trong khoảng nào?",
+      "worst_metric": "answer_relevancy",
+      "score": 0.375,
+      "metric_scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.0,
+        "context_precision": 0.0,
+        "context_recall": 0.5
+      },
+      "diagnosis": "Answer doesn't match question",
+      "suggested_fix": "Improve prompt template"
+    },
+    {
+      "question": "Muốn mua thiết bị trị giá 55 triệu cần ai phê duyệt?",
+      "worst_metric": "faithfulness",
+      "score": 0.7066,
+      "metric_scores": {
+        "faithfulness": 0.0,
+        "answer_relevancy": 0.8265,
+        "context_precision": 1.0,
+        "context_recall": 1.0
+      },
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten prompt, lower temperature"
+    },
+    {
+      "question": "Nhân viên được nghỉ bao nhiêu ngày khi kết hôn?",
+      "worst_metric": "faithfulness",
+      "score": 0.7459,
+      "metric_scores": {
+        "faithfulness": 0.0,
+        "answer_relevancy": 0.9837,
+        "context_precision": 1.0,
+        "context_recall": 1.0
+      },
+      "diagnosis": "LLM hallucinating",
+      "suggested_fix": "Tighten prompt, lower temperature"
+    },
+    {
+      "question": "Lương thử việc của nhân viên Junior mức cao nhất là bao nhiêu?",
+      "worst_metric": "context_precision",
+      "score": 0.7643,
+      "metric_scores": {
+        "faithfulness": 0.8333,
+        "answer_relevancy": 0.8907,
+        "context_precision": 0.3333,
+        "context_recall": 1.0
+      },
+      "diagnosis": "Too many irrelevant chunks",
+      "suggested_fix": "Add reranking or metadata filter"
+    },
+    {
+      "question": "Có cần kích hoạt xác thực đa yếu tố (MFA) không?",
+      "worst_metric": "context_recall",
+      "score": 0.8323,
+      "metric_scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8292,
+        "context_precision": 1.0,
+        "context_recall": 0.5
+      },
+      "diagnosis": "Missing relevant chunks",
+      "suggested_fix": "Improve chunking or add BM25"
+    },
+    {
+      "question": "Nhân viên tạm ứng 15 triệu, sau 20 ngày mới thanh toán. Bị phạt bao nhiêu?",
+      "worst_metric": "context_recall",
+      "score": 0.8334,
+      "metric_scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8337,
+        "context_precision": 1.0,
+        "context_recall": 0.5
+      },
+      "diagnosis": "Missing relevant chunks",
+      "suggested_fix": "Improve chunking or add BM25"
+    },
+    {
+      "question": "Nghỉ phép không lương 20 ngày cần ai phê duyệt?",
+      "worst_metric": "context_recall",
+      "score": 0.8476,
+      "metric_scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.8904,
+        "context_precision": 1.0,
+        "context_recall": 0.5
+      },
+      "diagnosis": "Missing relevant chunks",
+      "suggested_fix": "Improve chunking or add BM25"
+    },
+    {
+      "question": "Nhân viên được nghỉ bao nhiêu ngày phép năm?",
+      "worst_metric": "context_precision",
+      "score": 0.8563,
+      "metric_scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.925,
+        "context_precision": 0.5,
+        "context_recall": 1.0
+      },
+      "diagnosis": "Too many irrelevant chunks",
+      "suggested_fix": "Add reranking or metadata filter"
+    },
+    {
+      "question": "Thông tin lương thuộc cấp độ phân loại dữ liệu nào?",
+      "worst_metric": "context_precision",
+      "score": 0.8629,
+      "metric_scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.9517,
+        "context_precision": 0.5,
+        "context_recall": 1.0
+      },
+      "diagnosis": "Too many irrelevant chunks",
+      "suggested_fix": "Add reranking or metadata filter"
+    }
+  ]
+}

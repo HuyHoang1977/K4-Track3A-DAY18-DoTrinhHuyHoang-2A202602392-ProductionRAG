@@ -1,4 +1,8 @@
 .env
+.venv/
+venv/
+env/
+run_main*.log
 .DS_Store
 __pycache__/
 *.pyc

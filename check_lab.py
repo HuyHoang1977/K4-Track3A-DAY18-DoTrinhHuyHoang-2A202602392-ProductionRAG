@@ -60,9 +60,12 @@ def run_tests() -> tuple[int, int]:
     """Run pytest and return (passed, total)."""
     try:
         import re
+        # Timeout 900s: test_m3 nạp cross-encoder bge-reranker-v2-m3 (~2.3GB) nên
+        # riêng file này mất ~5 phút. Timeout 120s khiến script báo nhầm
+        # "không chạy được tests" dù toàn bộ test đều pass.
         result = subprocess.run(
             [sys.executable, "-m", "pytest", "tests/", "-v", "--tb=no", "-q"],
-            capture_output=True, text=True, timeout=120, encoding="utf-8", errors="replace"
+            capture_output=True, text=True, timeout=900, encoding="utf-8", errors="replace"
         )
         lines = result.stdout.strip().split("\n")
         summary = lines[-1] if lines else ""

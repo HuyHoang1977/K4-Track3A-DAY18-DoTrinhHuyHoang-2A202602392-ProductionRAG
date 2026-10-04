@@ -15,7 +15,44 @@ from src.m2_search import HybridSearch
 from src.m3_rerank import CrossEncoderReranker
 from src.m4_eval import load_test_set, evaluate_ragas, failure_analysis, save_report
 from src.m5_enrichment import enrich_chunks
-from config import RERANK_TOP_K
+from config import RERANK_TOP_K, RETRIEVAL_MERGE_MAX
+
+
+def merge_retrieval_units(chunks: list[dict], merge_max: int = RETRIEVAL_MERGE_MAX) -> list[dict]:
+    """
+    Gộp các child chunk liên tiếp cùng parent thành đơn vị truy hồi lớn hơn.
+
+    Lý do (đo bằng ablation trên 20 câu test):
+      child as-is (125 đơn vị, median 186c) → recall proxy 0.7310
+      gộp ≤400c   (72 đơn vị,  median 297c) → recall proxy 0.8416
+    Child nhỏ vụn (median 186c, nhỏ nhất 3c) chứa quá ít ngữ cảnh để câu hỏi
+    khớp, đặc biệt khi dữ liệu là bảng lương/bảng số.
+
+    Đánh đổi: context_precision giảm (0.2348 → 0.1823) vì đơn vị lớn chứa
+    nhiều thông tin không liên quan hơn.
+    """
+    merged: list[dict] = []
+    buf_text, buf_meta = "", None
+
+    def flush():
+        nonlocal buf_text, buf_meta
+        if buf_text.strip() and buf_meta is not None:
+            merged.append({"text": buf_text.strip(), "metadata": dict(buf_meta)})
+        buf_text, buf_meta = "", None
+
+    for chunk in chunks:
+        meta = chunk["metadata"]
+        pid = meta.get("parent_id")
+        if buf_meta is None or meta.get("parent_id") != pid:
+            flush()
+            buf_text, buf_meta = chunk["text"], meta
+        elif len(buf_text) + 2 + len(chunk["text"]) <= merge_max:
+            buf_text += "\n\n" + chunk["text"]
+        else:
+            flush()
+            buf_text, buf_meta = chunk["text"], meta
+    flush()
+    return merged
 
 
 def build_pipeline():
@@ -33,7 +70,8 @@ def build_pipeline():
         parents, children = chunk_hierarchical(doc["text"], metadata=doc["metadata"])
         for child in children:
             all_chunks.append({"text": child.text, "metadata": {**child.metadata, "parent_id": child.parent_id}})
-    print(f"  ✓ {len(all_chunks)} chunks from {len(docs)} documents ({time.time()-t0:.1f}s)", flush=True)
+    all_chunks = merge_retrieval_units(all_chunks)
+    print(f"  ✓ {len(all_chunks)} retrieval units from {len(docs)} documents ({time.time()-t0:.1f}s)", flush=True)
 
     # Step 2: Enrichment (M5)
     t0 = time.time()
@@ -68,22 +106,18 @@ def run_query(query: str, search: HybridSearch, reranker: CrossEncoderReranker) 
     reranked = reranker.rerank(query, docs, top_k=RERANK_TOP_K)
     contexts = [r.text for r in reranked] if reranked else [r.text for r in results[:3]]
 
-    from config import OPENAI_API_KEY
-    if OPENAI_API_KEY and contexts:
-        try:
-            from openai import OpenAI
-            client = OpenAI()
-            context_str = "\n\n".join(contexts)
-            resp = client.chat.completions.create(model="gpt-4o-mini", messages=[
-                {"role": "system", "content": "Trả lời CHỈ dựa trên context. Nếu không có → nói 'Không tìm thấy.'"},
-                {"role": "user", "content": f"Context:\n{context_str}\n\nCâu hỏi: {query}"},
-            ])
-            answer = resp.choices[0].message.content
-        except Exception as e:
-            print(f"  ⚠️  LLM generation failed: {e}", flush=True)
+    from src.m5_enrichment import _chat
+    if contexts:
+        context_str = "\n\n".join(contexts)
+        answer = _chat(
+            "Trả lời CHỈ dựa trên context. Nếu không có → nói 'Không tìm thấy.'",
+            f"Context:\n{context_str}\n\nCâu hỏi: {query}",
+            max_tokens=500,
+        )
+        if not answer:
             answer = contexts[0]
     else:
-        answer = contexts[0] if contexts else "Không tìm thấy thông tin."
+        answer = "Không tìm thấy thông tin."
     return answer, contexts
 
 
